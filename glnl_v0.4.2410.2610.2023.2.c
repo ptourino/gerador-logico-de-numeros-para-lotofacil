@@ -1,7 +1,7 @@
 /**
   @name    Gerador Logico de Numeros para Lotofacil (GLNL)
   @author  Pedro Augusto Nunes Tourino
-  @version 0.3.1310.2310.2023.2 - 13/10/2023 a 23/10/2023
+  @version 0.4.2410.2610.2023.2 - 24/10/2023 a 26/10/2023
 
   Dados:
   - opcao de execucao escolhida pelo usuario
@@ -14,16 +14,16 @@
 
   Forma de compilacao:
   - Para compilar em terminal (janela de comandos):
-    Linux: 	 gcc -o output/glnl_v0.3.1310.2310.2023.2 ./glnl_v0.3.1310.2310.2023.2.c
-    Windows: gcc -o output/glnl_v0.3.1310.2310.2023.2 glnl_v0.3.1310.2310.2023.2.c
+    Linux: 	 gcc -o output/glnl_v0.4.2410.2610.2023.2 ./glnl_v0.4.2410.2610.2023.2.c
+    Windows: gcc -o output/glnl_v0.4.2410.2610.2023.2 glnl_v0.4.2410.2610.2023.2.c
 
   Forma de uso:
   - Para executar em terminal (janela de comandos):
-    Linux e Windows: output/glnl_v0.3.1310.2310.2023.2
+    Linux e Windows: output/glnl_v0.4.2410.2610.2023.2
 
   Forma alternativa de compilacao e uso:
   - Para executar em terminal (janela de comandos):
-    Linux e Windows: ./mk glnl_v0.3.1310.2310.2023.2
+    Linux e Windows: ./mk glnl_v0.4.2410.2610.2023.2
 
     Nota: Ao usar essa alternativa pela primeira
           vez, executar o comando "chmod +x mk".
@@ -31,6 +31,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 #include <time.h>
 
@@ -53,6 +54,24 @@ enum OPTIONS
   GENERATE_19 = 6,
   GENERATE_20 = 7
 } option;
+
+/**
+  Metodo para limpar a saida de dados padrao.
+*/
+void clearScreen()
+{
+#if defined(_WIN32) || defined(_WIN64) || defined(__WINDOWS__)
+  system("cls");
+#elif defined(__linux__)
+  system("clear");
+#elif defined(__APPLE__) && defined(__MACH__)
+  system("clear");
+#elif defined(unix) || defined(__unix__) || defined(__unix)
+  system("clear");
+#else
+#error Unknown_OS
+#endif
+}
 
 int compare(const void *a, const void *b)
 {
@@ -100,31 +119,61 @@ bool isRepeated(const int *numbers, int size, int number)
   return false;
 }
 
-/**
-  Metodo para limpar a saida de dados padrao.
-*/
-void clearScreen()
+char generateFileName(char *file_name)
 {
-#if defined(_WIN32) || defined(_WIN64) || defined(__WINDOWS__)
-  system("cls");
-#elif defined(__linux__)
-  system("clear");
-#elif defined(__APPLE__) && defined(__MACH__)
-  system("clear");
-#elif defined(unix) || defined(__unix__) || defined(__unix)
-  system("clear");
-#else
-#error Unknown_OS
-#endif
+  char contest[6];
+
+  printf("\n%s ", "Concurso atual:");
+  scanf("%s", contest);
+  getchar();
+
+  time_t t;
+  struct tm *date;
+
+  // Obter a hora atual
+  time(&t);
+
+  // Converter a hora atual em uma estrutura de data
+  date = localtime(&t);
+
+  char temp[20];
+
+  // Formatar a data como DD-MM-AAAA (por exemplo, 26-10-2023)
+  strftime(temp, sizeof(temp), "%d-%m-%Y", date);
+
+  return snprintf(file_name, 20, "%s_%s.txt", contest, temp);
 }
 
-void generateNumbers(int size)
+void saveGame(int *numbers, int size)
+{
+  char file_name[20];
+
+  generateFileName(file_name);
+
+  FILE *file = fopen(file_name, "at");
+
+  if (file == NULL)
+  {
+    printf("\n%s %s%c", "ERRO: Nao foi possivel abrir o arquivo", file_name, '.');
+    return;
+  }
+
+  for (int index = 0; index < size; index++)
+  {
+    fprintf(file, "%d ", numbers[index]);
+  }
+  fprintf(file, "\n\n");
+
+  fclose(file);
+}
+
+void generateNumbers(int size) // dividir em funcoes: generateNumbers e createGame
 {
   int *numbers = (int *)malloc(size * sizeof(int));
 
   if (numbers == NULL)
   {
-    printf("\n%s\n", "ERRO: Falha na alocacao de memoria. Tente novamente.");
+    printf("\n%s", "ERRO: Falha na alocacao de memoria.");
     return;
   }
 
@@ -213,8 +262,11 @@ void generateNumbers(int size)
   printf("\nContador de impares = %d", oddsCount);
   printf("\nContador de primos = %d\n", primesCount);
 
-  printf("\nIndex = %d\n\n", index);
+  printf("\nIndex = %d\n", index);
 
+  saveGame(numbers, size);
+
+  printf("%s ", "Numeros gerados:");
   for (index = 0; index < size; index++)
   {
     printf("%d ", numbers[index]);
@@ -226,7 +278,7 @@ void generateNumbers(int size)
   getchar();
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
   enum OPTIONS option = 0;
 
