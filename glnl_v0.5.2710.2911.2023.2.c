@@ -1,7 +1,7 @@
 /**
   @name    Gerador Logico de Numeros para Lotofacil (GLNL)
   @author  Pedro Augusto Nunes Tourino
-  @version 0.4.2410.2610.2023.2 - 24/10/2023 a 26/10/2023
+  @version 0.5.2710.2911.2023.2 - 27/10/2023 a 29/11/2023
 
   Dados:
   - opcao de execucao escolhida pelo usuario
@@ -14,16 +14,16 @@
 
   Forma de compilacao:
   - Para compilar em terminal (janela de comandos):
-    Linux: 	 gcc -o output/glnl_v0.4.2410.2610.2023.2 ./glnl_v0.4.2410.2610.2023.2.c
-    Windows: gcc -o output/glnl_v0.4.2410.2610.2023.2 glnl_v0.4.2410.2610.2023.2.c
+    Linux:   gcc -o output/glnl_v0.5.2710.2911.2023.2 ./glnl_v0.5.2710.2911.2023.2.c
+    Windows: gcc -o output/glnl_v0.5.2710.2911.2023.2 glnl_v0.5.2710.2911.2023.2.c
 
   Forma de uso:
   - Para executar em terminal (janela de comandos):
-    Linux e Windows: output/glnl_v0.4.2410.2610.2023.2
+    Linux e Windows: output/glnl_v0.5.2710.2911.2023.2
 
   Forma alternativa de compilacao e uso:
   - Para executar em terminal (janela de comandos):
-    Linux e Windows: ./mk glnl_v0.4.2410.2610.2023.2
+    Linux e Windows: ./mk glnl_v0.5.2710.2911.2023.2
 
     Nota: Ao usar essa alternativa pela primeira
           vez, executar o comando "chmod +x mk".
@@ -35,12 +35,14 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define MIN_PROBABILITY 1
-#define MAX_PROBABILITIES_RANGE 10
-#define MIN_PRIME 5
-#define MAX_PRIMES_RANGE 2
-#define MIN_NUMBER 1
-#define MAX_NUMBERS_RANGE 25
+#define ROWS 5
+#define COLUMNS 5
+#define MIN_PROBABILITY 1          // mudar
+#define MAX_PROBABILITIES_RANGE 10 // mudar
+#define MIN_PRIME 5                // mudar
+#define MAX_PRIMES_RANGE 2         // mudar
+#define MIN_NUMBER 1               // mudar
+#define MAX_NUMBERS_RANGE 25       // mudar
 #define OPTION (option + 13)
 
 enum OPTIONS
@@ -119,7 +121,7 @@ bool isRepeated(const int *numbers, int size, int number)
   return false;
 }
 
-char generateFileName(char *file_name)
+char generateFileName(char *filename)
 {
   char contest[6];
 
@@ -141,20 +143,19 @@ char generateFileName(char *file_name)
   // Formatar a data como DD-MM-AAAA (por exemplo, 26-10-2023)
   strftime(temp, sizeof(temp), "%d-%m-%Y", date);
 
-  return snprintf(file_name, 20, "%s_%s.txt", contest, temp);
+  return snprintf(filename, 20, "%s_%s.txt", contest, temp);
 }
 
 void saveGame(int *numbers, int size)
 {
-  char file_name[20];
+  char filename[20];
 
-  generateFileName(file_name);
+  generateFileName(filename);
 
-  FILE *file = fopen(file_name, "at");
-
+  FILE *file = fopen(filename, "at");
   if (file == NULL)
   {
-    printf("\n%s %s%c", "ERRO: Nao foi possivel abrir o arquivo", file_name, '.');
+    printf("\n%s %s.", "ERRO: Nao foi possivel abrir o arquivo", filename);
     return;
   }
 
@@ -169,8 +170,13 @@ void saveGame(int *numbers, int size)
 
 void generateNumbers(int size) // dividir em funcoes: generateNumbers e createGame
 {
-  int *numbers = (int *)malloc(size * sizeof(int));
+  int steeringWheel[ROWS][COLUMNS] = {{1, 2, 3, 4, 5},
+                                      {6, 7, 8, 9, 10},
+                                      {11, 12, 13, 14, 15},
+                                      {16, 17, 18, 19, 20},
+                                      {21, 22, 23, 24, 25}};
 
+  int *numbers = (int *)malloc(size * sizeof(int));
   if (numbers == NULL)
   {
     printf("\n%s", "ERRO: Falha na alocacao de memoria.");
@@ -258,23 +264,52 @@ void generateNumbers(int size) // dividir em funcoes: generateNumbers e createGa
   printf("\nImpares = %d", odds);
   printf("\nPrimos = %d\n", primes);
 
-  printf("\nContador de pares = %d", evensCount);
+  /* printf("\nContador de pares = %d", evensCount);
   printf("\nContador de impares = %d", oddsCount);
   printf("\nContador de primos = %d\n", primesCount);
 
-  printf("\nIndex = %d\n", index);
+  printf("\nIndex = %d\n", index); */
 
   saveGame(numbers, size);
 
-  printf("%s ", "Numeros gerados:");
-  for (index = 0; index < size; index++)
+  index = 0;
+
+  printf("\n%s\n\n", "Numeros gerados:");
+  for (int row = 0; row < ROWS; row++)
   {
-    printf("%d ", numbers[index]);
+    for (int column = 0; column < COLUMNS; column++)
+    {
+      if (steeringWheel[row][column] == numbers[index])
+      {
+        if (steeringWheel[row][column] < 10)
+        {
+          printf("\033[1;38;2;0;255;0m|%d%d|\033[0m ", 0, steeringWheel[row][column]);
+        }
+        else
+        {
+          printf("\033[1;38;2;0;255;0m|%d|\033[0m ", steeringWheel[row][column]); // \t
+        }
+
+        index++;
+      }
+      else
+      {
+        if (steeringWheel[row][column] < 10)
+        {
+          printf("|%d%d| ", 0, steeringWheel[row][column]);
+        }
+        else
+        {
+          printf("|%d| ", steeringWheel[row][column]);
+        }
+      }
+    }
+    printf("\n\n");
   }
 
   free(numbers);
 
-  printf("\n\n%s", "Pressione (ENTER) para continuar");
+  printf("\n\033[1;38;2;255;0;0m%s\033[0m", "Pressione (ENTER) para continuar");
   getchar();
 }
 
@@ -286,18 +321,20 @@ int main(int argc, char *argv[])
   {
     clearScreen();
 
-    printf("%s\n", "+--------------------------------------------------+");
-    printf("%s\n", "| ||||||||||||||||||(   GLNL   )|||||||||||||||||| |");
-    printf("%s\n", "+==================================================+");
-    printf("%s\n", "| Menu de opcoes:                                  |");
-    printf("%s\n", "|                                                  |");
-    printf("%s\n", "| (0) - Encerrar o programa                        |");
-    printf("%s\n", "| (1) - Informacoes sobre o programa               |");
-    printf("%s\n", "| ------------------------------------------------ |");
-    printf("%s\n", "| (2) - Gerar 15 numeros    (5) - Gerar 18 numeros |");
-    printf("%s\n", "| (3) - Gerar 16 numeros    (6) - Gerar 19 numeros |");
-    printf("%s\n", "| (4) - Gerar 17 numeros    (7) - Gerar 20 numeros |");
-    printf("%s\n", "+--------------------------------------------------+");
+    printf("%s\n", "+-------------------------------------------------------------------+");
+    printf("%s\n", "| |||||||||||||||||||||||||||(   GLNL   )|||||||||||||||||||||||||| |");
+    printf("%s\n", "+===================================================================+");
+    printf("%s\n", "| Menu de opcoes:                                                   |");
+    printf("%s\n", "|                                                                   |");
+    printf("%s\n", "| (0) - Encerrar o programa                                         |");
+    printf("%s\n", "| (1) - Informacoes sobre o programa                                |");
+    printf("%s\n", "| ----------------------------------------------------------------- |");
+    printf("%s\n", "| (2) - Conferir jogo gerado                                        |");
+    printf("%s\n", "| ----------------------------------------------------------------- |");
+    printf("%s\n", "| (3) - Gerar jogo com 15 numeros   (6) - Gerar jogo com 18 numeros |");
+    printf("%s\n", "| (4) - Gerar jogo com 16 numeros   (7) - Gerar jogo com 19 numeros |");
+    printf("%s\n", "| (5) - Gerar jogo com 17 numeros   (8) - Gerar jogo com 20 numeros |");
+    printf("%s\n", "+-------------------------------------------------------------------+");
 
     printf("\n%s ", "Opcao:");
     scanf("%d", &option);
@@ -313,7 +350,7 @@ int main(int argc, char *argv[])
       clearScreen();
       printf("%s\n", "Autor: Pedro Augusto Nunes Tourino");
       printf("%s\n", "GLNL ou Gerador logico de Numeros para Lotofacil");
-      printf("\n%s", "Pressione (ENTER) para continuar");
+      printf("\n\033[1;38;2;255;0;0m%s\033[0m", "Pressione (ENTER) para continuar");
       getchar();
       break;
     case GENERATE_15:
@@ -328,7 +365,7 @@ int main(int argc, char *argv[])
     default:
       clearScreen();
       printf("%s\n", "ERRO: Opcao invalida. Tente novamente.");
-      printf("\n%s", "Pressione (ENTER) para continuar");
+      printf("\n\033[1;38;2;255;0;0m%s\033[0m", "Pressione (ENTER) para continuar");
       getchar();
       break;
     }
